@@ -1,0 +1,3 @@
+#https://github.com/chrisblakely01/java-spring-microservices/blob/main/api-gateway/src/main/resources/application.yml
+server:
+  port: 8080
