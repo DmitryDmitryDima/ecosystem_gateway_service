@@ -1,3 +1,16 @@
 #https://github.com/chrisblakely01/java-spring-microservices/blob/main/api-gateway/src/main/resources/application.yml
 server:
   port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: microservice-test
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/test/**
+          filters:
+
