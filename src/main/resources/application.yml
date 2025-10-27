@@ -11,7 +11,17 @@ spring:
         - id: microservice-test
           uri: http://localhost:8081
           predicates:
-            - Path=/api/test/**
+            - Path=/api/**
           filters:
+            - StripPrefix=1
+            - ValidationFilter
+        - id: auth
+          uri: http://localhost:8082
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+
 
 
