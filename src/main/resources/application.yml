@@ -2,6 +2,10 @@
 server:
   port: 8080
 
+# в системе существует защищенная (api) и незащищенная часть (auth)
+# каждый запрос к api проверяется на наличие токена в ValidationFilter. Если токен есть - /auth/validate, если нет - статус гость в security context
+# access токен - создается через /auth/login, обновляется через /auth/refresh (с помощью refresh токена)
+# регистрация пользователя - /auth/register, выход из профиля (деактивация refresh токенов) - /auth/logout
 spring:
   application:
     name: gateway
@@ -10,16 +14,22 @@ spring:
       routes:
         - id: microservice-test
           uri: http://localhost:8081
+
+          # фронтенд делает запрос типа /api/...
           predicates:
             - Path=/api/**
           filters:
+            # фильтр удаляет первую часть пути (/api/) перед пробросом
             - StripPrefix=1
+
+            # валидация токена + формирование security context
             - ValidationFilter
         - id: auth
           uri: http://localhost:8082
           predicates:
             - Path=/auth/**
           filters:
+            # фильтр удаляет первую часть пути (/api/) перед пробросом
             - StripPrefix=1
 
 
