@@ -17,7 +17,7 @@ spring:
 
           # фронтенд делает запрос типа /api/...
           predicates:
-            - Path=/api/**
+            - Path=/api/test/*
           filters:
             # фильтр удаляет первую часть пути (/api/) перед пробросом
             - StripPrefix=1
@@ -31,6 +31,15 @@ spring:
           filters:
             # фильтр удаляет первую часть пути (/api/) перед пробросом
             - StripPrefix=1
+
+        - id: cards
+          uri: http://localhost:8000
+          predicates:
+            - Path=/api/tools/cards/**
+          filters:
+            - StripPrefix=3
+            - ValidationFilter
+
 
 
 
