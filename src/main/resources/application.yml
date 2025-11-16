@@ -12,18 +12,32 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: microservice-test
-          uri: http://localhost:8081
 
-          # фронтенд делает запрос типа /api/...
+
+        - id: userservice
+          uri: http://localhost:8085
           predicates:
-            - Path=/api/test/*
+            - Path=/api/users/**
           filters:
-            # фильтр удаляет первую часть пути (/api/) перед пробросом
-            - StripPrefix=1
-
-            # валидация токена + формирование security context
+            - StripPrefix=2
             - ValidationFilter
+
+
+        - id: javaprojects
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/projects/java/**
+          filters:
+            - StripPrefix=3
+            - ValidationFilter
+
+
+
+
+
+
+
+
         - id: auth
           uri: http://localhost:8082
           predicates:
@@ -32,10 +46,14 @@ spring:
             # фильтр удаляет первую часть пути (/api/) перед пробросом
             - StripPrefix=1
 
+
+
+
+
         - id: cards
           uri: http://localhost:8000
           predicates:
-            - Path=/api/tools/cards/**
+            - Path=/api/cards/**
           filters:
             - StripPrefix=3
             - ValidationFilter

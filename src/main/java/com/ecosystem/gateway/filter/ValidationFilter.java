@@ -52,6 +52,7 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
             String token =
                     exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+
             // токена нет - перед нами гость. Вносим инфу (mutate) об этом в security context, после чего пробрасываем запрос дальше
             if(token == null || !token.startsWith("Bearer ") || token.length() <= 7) {
 
