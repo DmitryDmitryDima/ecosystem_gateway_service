@@ -55,7 +55,7 @@ spring:
           predicates:
             - Path=/api/cards/**
           filters:
-            - StripPrefix=3
+            - StripPrefix=2
             - ValidationFilter
 
 
