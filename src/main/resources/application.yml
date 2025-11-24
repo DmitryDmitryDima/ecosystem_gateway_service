@@ -47,7 +47,13 @@ spring:
             - StripPrefix=1
 
 
-
+        - id: ai
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - StripPrefix=2
+            - ValidationFilter
 
 
         - id: cards
