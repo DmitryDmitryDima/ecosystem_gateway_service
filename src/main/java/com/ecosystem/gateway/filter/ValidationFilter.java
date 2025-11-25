@@ -6,6 +6,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -52,9 +53,20 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
             String token =
                     exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+            HttpMethod method = exchange.getRequest().getMethod();
+
+
 
             // токена нет - перед нами гость. Вносим инфу (mutate) об этом в security context, после чего пробрасываем запрос дальше
             if(token == null || !token.startsWith("Bearer ") || token.length() <= 7) {
+
+                // если гость пытается сделать не GET запрос - отклоняем
+                if (!method.equals(HttpMethod.GET)){
+                    System.out.println(method);
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return exchange.getResponse().setComplete();
+
+                }
 
                 ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                         .header("role", "GUEST")
