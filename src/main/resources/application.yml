@@ -14,6 +14,14 @@ spring:
       routes:
 
 
+        - id: notifications
+          uri: ws://localhost:8086
+          predicates:
+            - Path=/notifications
+          filters:
+            - StripPrefix=0
+
+
         - id: userservice
           uri: http://localhost:8085
           predicates:
