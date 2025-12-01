@@ -53,6 +53,13 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
             String token =
                     exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+            // todo приходит username, пробрасывается дальше - uuid
+            String targetResolve = exchange.getRequest().getHeaders().getFirst("target");
+
+            // todo если существует target resolve, security context должен вернуться с target uuid
+            // в сервисе те эндпоинты, кому нужен этот параметр для валидации доступа к контенту, будут его проверять
+
+
             HttpMethod method = exchange.getRequest().getMethod();
 
 
@@ -67,6 +74,10 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
                     return exchange.getResponse().setComplete();
 
                 }
+
+                // todo дополнительно мы должны вызвать target resolve там, где это нужно
+                // думая сделать так, чтобы каждый запрос попадал на validate, и токен проверялся там.
+                // так мы сможем, к примеру, реализовать в дальнейшем хранение параметров гостя
 
                 ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                         .header("role", "GUEST")

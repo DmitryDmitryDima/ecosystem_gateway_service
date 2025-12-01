@@ -17,7 +17,7 @@ spring:
         - id: notifications
           uri: ws://localhost:8086
           predicates:
-            - Path=/notifications
+            - Path=/ws/notifications
           filters:
             - StripPrefix=0
 
