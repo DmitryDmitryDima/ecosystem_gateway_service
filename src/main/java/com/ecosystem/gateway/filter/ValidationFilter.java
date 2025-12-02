@@ -53,45 +53,30 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
             String token =
                     exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-            // todo приходит username, пробрасывается дальше - uuid
-            String targetResolve = exchange.getRequest().getHeaders().getFirst("target");
-
-            // todo если существует target resolve, security context должен вернуться с target uuid
-            // в сервисе те эндпоинты, кому нужен этот параметр для валидации доступа к контенту, будут его проверять
-
-
-            HttpMethod method = exchange.getRequest().getMethod();
+            // обрабатываем ситуации, где возможен просмотр чужого контента кем либо
+            // - наша цель сообщить дальнейшим участникам цепочки uuid как viewer, так и target
+            String targetUsername = exchange.getRequest().getQueryParams().getFirst("targetUsername");
+            System.out.println(targetUsername);
 
 
+            HttpMethod method = exchange.getRequest().getMethod(); // todo фильтрация по методу
+            if (!method.equals(HttpMethod.GET) && (token == null || !token.startsWith("Bearer ") || token.length() <= 7)){
+                System.out.println(method);
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
 
-            // токена нет - перед нами гость. Вносим инфу (mutate) об этом в security context, после чего пробрасываем запрос дальше
-            if(token == null || !token.startsWith("Bearer ") || token.length() <= 7) {
+            }
 
-                // если гость пытается сделать не GET запрос - отклоняем
-                if (!method.equals(HttpMethod.GET)){
-                    System.out.println(method);
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
 
-                }
-
-                // todo дополнительно мы должны вызвать target resolve там, где это нужно
-                // думая сделать так, чтобы каждый запрос попадал на validate, и токен проверялся там.
-                // так мы сможем, к примеру, реализовать в дальнейшем хранение параметров гостя
-
-                ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                        .header("role", "GUEST")
-                        .build();
-
-                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            WebClient.RequestHeadersSpec<?> spec = webClient.get().uri("/validate").header(HttpHeaders.AUTHORIZATION, token);
+            if (targetUsername!=null){
+                spec.header("targetUsername", targetUsername);
             }
 
             // если токен есть, перед нами авторизованный пользователь, проверяем его токен
             // токен не валиден - возвращаем 401
             // токен валиден - добавляем в headers полный security context
-            return webClient.get()
-                    .uri("/validate")
-                    .header(HttpHeaders.AUTHORIZATION, token)
+            return spec
                     .retrieve()
                     // переводим тело ответа в читаемый вид - Map<String, String>
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -109,6 +94,7 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
     // добавляем для запроса к api security context при успешной валидации токена
     private Mono<Void> upgradeRequest(Map<String, Object> body, ServerWebExchange exchange, GatewayFilterChain chain){
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header("targetuuid", (String) body.get("targetUUID"))
                 .header("role", (String) body.get("role"))
                 .header("username", (String) body.get("username"))
                 .header("uuid", (String) body.get("uuid"))
