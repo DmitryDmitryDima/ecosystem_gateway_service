@@ -20,7 +20,7 @@ spring:
             - Path=/ws/notifications
           filters:
             - StripPrefix=0
-            - ValidationFilter
+
 
 
         - id: userservice
@@ -29,7 +29,7 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=2
-            - ValidationFilter
+            - ValidationFilterHttpOnly
 
 
         - id: javaprojects
@@ -38,7 +38,7 @@ spring:
             - Path=/api/projects/java/**
           filters:
             - StripPrefix=3
-            - ValidationFilter
+            - ValidationFilterHttpOnly
 
 
 
@@ -62,7 +62,7 @@ spring:
             - Path=/api/ai/**
           filters:
             - StripPrefix=2
-            - ValidationFilter
+            - ValidationFilterHttpOnly
 
 
         - id: cards
@@ -71,7 +71,7 @@ spring:
             - Path=/api/cards/**
           filters:
             - StripPrefix=2
-            - ValidationFilter
+            - ValidationFilterHttpOnly
 
 
 

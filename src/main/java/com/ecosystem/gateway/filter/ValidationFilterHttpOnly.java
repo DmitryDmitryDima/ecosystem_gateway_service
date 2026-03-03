@@ -1,11 +1,13 @@
 package com.ecosystem.gateway.filter;
 
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
@@ -14,18 +16,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 /*
-Фильтр, защищающий зону /api приложения. Проверяет, содержит ли запрос access token, после обращения к auth серверу формирует secutity context
-- если токена нет, помечает запрос как гостевой (headers - role), после чего внутри структуры api формируется только та часть информации, что может быть доступна гостям
-- Если токен есть, и он действителен - формируется security context в headers (username, role, user uuid).
-Помним, что все данные в системе формируются вокруг user uuid
-- Если токен есть, но он просрочен - возвращается 401, после чего фронтенд делает запрос на refresh
+пишем версию фильтра для http only взаимодействия
  */
-
 @Component
-public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
+public class ValidationFilterHttpOnly extends AbstractGatewayFilterFactory<Object> {
 
     // реактивный клиент для взаимодействия с auth
     private final WebClient webClient;
@@ -34,7 +30,7 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
     private final String authUrl = "http://localhost:8082";
 
 
-    public ValidationFilter(WebClient.Builder webClientBuilder) {
+    public ValidationFilterHttpOnly(WebClient.Builder webClientBuilder) {
 
         this.webClient = webClientBuilder.baseUrl(authUrl).build();
 
@@ -42,43 +38,42 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
 
     }
 
-
-
     @Override
     public GatewayFilter apply(Object config) {
         return (exchange, chain) -> {
 
+            System.out.println("accessed "+ exchange.getRequest().getPath());
+
+
             MultiValueMap<String, HttpCookie> cookies = exchange.getRequest().getCookies();
 
             HttpCookie accessToken = cookies.getFirst("accessToken");
-            HttpCookie refreshToken = cookies.getFirst("refreshToken");
-            System.out.println(accessToken+" lol   "+refreshToken);
 
-            // пытаемся извлечь авторизационный токен типа bearer (с англ - предъявитель)
-            String token =
-                    exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            // пока запрещаем все запросы внутри системы кроме get для гостей
+            if (!exchange.getRequest().getMethod().equals(HttpMethod.GET) && accessToken==null) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
 
             // обрабатываем ситуации, где возможен просмотр чужого контента кем либо
             // - наша цель сообщить дальнейшим участникам цепочки uuid как viewer, так и target
             String targetUsername = exchange.getRequest().getQueryParams().getFirst("targetUsername");
-            System.out.println(targetUsername);
 
 
-            HttpMethod method = exchange.getRequest().getMethod(); // todo фильтрация по методу
-            if (!method.equals(HttpMethod.GET) && (token == null || !token.startsWith("Bearer ") || token.length() <= 7)){
-                System.out.println(method);
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
 
+
+
+
+
+
+
+
+            WebClient.RequestHeadersSpec<?> spec = webClient.get().uri("/validate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer "+accessToken);
+            // вставляем access token куки
+            if (accessToken != null){
+                spec.cookie("accessToken", accessToken.getValue());
             }
-
-
-            WebClient.RequestHeadersSpec<?> spec = webClient.get()
-                    .uri("/validate")
-                    .header(HttpHeaders.AUTHORIZATION, token);
-
-
-
             if (targetUsername!=null){
                 spec.header("targetUsername", targetUsername);
             }
@@ -111,10 +106,4 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
                 .build();
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
-
-
-
-
-
-
 }
