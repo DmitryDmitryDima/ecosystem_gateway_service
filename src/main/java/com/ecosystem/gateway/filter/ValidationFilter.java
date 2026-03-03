@@ -50,6 +50,7 @@ public class ValidationFilter extends AbstractGatewayFilterFactory<Object> {
         return (exchange, chain) -> {
 
             System.out.println(exchange.getRequest().getHeaders());
+            System.out.println(exchange.getRequest().getPath());
 
             // пытаемся извлечь авторизационный токен типа bearer (с англ - предъявитель)
             String token =
