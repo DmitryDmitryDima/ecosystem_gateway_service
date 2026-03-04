@@ -20,6 +20,7 @@ spring:
             - Path=/ws/notifications
           filters:
             - StripPrefix=0
+            - ValidationFilterHttpOnly
 
 
 
