@@ -13,6 +13,14 @@ spring:
     gateway:
       routes:
 
+        - id: observer
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/observer/**
+          filters:
+            - StripPrefix=2
+            - ValidationFilterHttpOnly
+
 
         - id: notifications
           uri: ws://localhost:8086
