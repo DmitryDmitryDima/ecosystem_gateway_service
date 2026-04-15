@@ -49,7 +49,7 @@ public class ValidationFilterHttpOnly extends AbstractGatewayFilterFactory<Objec
 
             HttpCookie accessToken = cookies.getFirst("accessToken");
 
-            // пока запрещаем все запросы внутри системы кроме get для гостей
+            // пока запрещаем все запросы внутри системы кроме GET для гостей
             if (!exchange.getRequest().getMethod().equals(HttpMethod.GET) && accessToken==null) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
