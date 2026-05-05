@@ -11,76 +11,78 @@ spring:
     name: gateway
   cloud:
     gateway:
-      routes:
-
-        - id: observer
-          uri: http://localhost:8086
-          predicates:
-            - Path=/api/observer/**
-          filters:
-            - StripPrefix=2
-            - ValidationFilterHttpOnly
-
-
-        - id: notifications
-          uri: ws://localhost:8086
-          predicates:
-            - Path=/ws/notifications
-          filters:
-            - StripPrefix=0
-            - ValidationFilterHttpOnly
+      server:
+        webflux:
+          routes:
+            - id: observer
+              uri: http://localhost:8086
+              predicates:
+                - Path=/api/observer/**
+              filters:
+                - StripPrefix=2
+                - ValidationFilterHttpOnly
 
 
-
-        - id: userservice
-          uri: http://localhost:8085
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - StripPrefix=2
-            - ValidationFilterHttpOnly
-
-
-        - id: javaprojects
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/projects/java/**
-          filters:
-            - StripPrefix=3
-            - ValidationFilterHttpOnly
+            - id: notifications
+              uri: ws://localhost:8086
+              predicates:
+                - Path=/ws/notifications
+              filters:
+                - StripPrefix=0
+                - ValidationFilterHttpOnly
 
 
 
+            - id: userservice
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - StripPrefix=2
+                - ValidationFilterHttpOnly
+
+
+            - id: javaprojects
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/projects/java/**
+              filters:
+                - StripPrefix=3
+                - ValidationFilterHttpOnly
 
 
 
 
 
-        - id: auth
-          uri: http://localhost:8082
-          predicates:
-            - Path=/auth/**
-          filters:
-            # фильтр удаляет первую часть пути (/api/) перед пробросом
-            - StripPrefix=1
 
 
-        - id: ai
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/ai/**
-          filters:
-            - StripPrefix=2
-            - ValidationFilterHttpOnly
+
+            - id: auth
+              uri: http://localhost:8082
+              predicates:
+                - Path=/auth/**
+              filters:
+                # фильтр удаляет первую часть пути (/api/) перед пробросом
+                - StripPrefix=1
 
 
-        - id: cards
-          uri: http://localhost:8000
-          predicates:
-            - Path=/api/cards/**
-          filters:
-            - StripPrefix=2
-            - ValidationFilterHttpOnly
+            - id: ai
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/ai/**
+              filters:
+                - StripPrefix=2
+                - ValidationFilterHttpOnly
+
+
+            - id: cards
+              uri: http://localhost:8000
+              predicates:
+                - Path=/api/cards/**
+              filters:
+                - StripPrefix=2
+                - ValidationFilterHttpOnly
+
 
 
 
